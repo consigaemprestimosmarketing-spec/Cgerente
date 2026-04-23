@@ -10,8 +10,7 @@
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
-import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
+import { getFirestore, doc, setDoc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBcn514uoUgVCt7NFOKXXyaFDz0vXZRhxE",
@@ -39,24 +38,6 @@ onSnapshot(doc(db,'campanha','state'), (snap) => {
     window.onFirebaseUpdate(data);
   }
 });
-
-const storage = getStorage(app);
-
-// Upload de imagem para o Storage, retorna URL pública
-window.fbUploadImage = async function(dataUrl, path) {
-  try {
-    const storageRef = ref(storage, path);
-    // Remove o prefixo data:image/...;base64,
-    const base64 = dataUrl.split(',')[1];
-    const mimeType = dataUrl.split(';')[0].split(':')[1];
-    await uploadString(storageRef, base64, 'base64', { contentType: mimeType });
-    const url = await getDownloadURL(storageRef);
-    return url;
-  } catch(e) {
-    console.error('Erro upload imagem:', e);
-    return null;
-  }
-};
 
 window.fbReady = true;
 console.log('Firebase conectado!');
@@ -394,6 +375,26 @@ window.onFirebaseUpdate = function(data){
 
 // ── SALVAR ──
 let isSaving=false;
+
+// Comprime imagem para base64 pequeno (max 300px, qualidade 0.5) ~20KB
+function compressImage(src, maxSize=300, quality=0.5){
+  return new Promise(resolve=>{
+    if(!src || !src.startsWith('data:')){resolve(src);return;}
+    const img=new Image();
+    img.onload=()=>{
+      const canvas=document.createElement('canvas');
+      let w=img.width,h=img.height;
+      if(w>h){if(w>maxSize){h=Math.round(h*maxSize/w);w=maxSize;}}
+      else{if(h>maxSize){w=Math.round(w*maxSize/h);h=maxSize;}}
+      canvas.width=w;canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      resolve(canvas.toDataURL('image/jpeg',quality));
+    };
+    img.onerror=()=>resolve(src);
+    img.src=src;
+  });
+}
+
 async function saveAll(){
   if(!isManager)return;
   managers.forEach((m,i)=>{const el=document.getElementById('val_'+i);if(el)m.value=parseFloat(el.value)||0;});
@@ -401,39 +402,31 @@ async function saveAll(){
   setSyncStatus('saving');
   isSaving=true;
 
-  // Fotos dos atendentes: upload se for base64
-  const managersToSave = await Promise.all(managers.map(async (m,i)=>{
-    let photo = m.photo;
-    if(photo && photo.startsWith('data:')){
-      const url = await window.fbUploadImage(photo, 'fotos/atendente_'+i+'.jpg');
-      if(url){ m.photo=url; photo=url; }
-    }
-    return {...m, photo};
-  }));
+  // Comprime fotos dos atendentes
+  const managersToSave=await Promise.all(managers.map(async m=>({
+    ...m,
+    photo: await compressImage(m.photo, 120, 0.6)
+  })));
 
-  // Logo
-  let logoSrc = document.getElementById('logoImg')?.src||null;
-  if(logoSrc && logoSrc.startsWith('data:')){
-    const url = await window.fbUploadImage(logoSrc,'fotos/logo.jpg');
-    if(url){ document.getElementById('logoImg').src=url; logoSrc=url; }
-  }
-
-  // Prêmio
-  let premioSrc = document.getElementById('premioImg')?.src||null;
-  if(premioSrc && premioSrc.startsWith('data:')){
-    const url = await window.fbUploadImage(premioSrc,'fotos/premio.jpg');
-    if(url){ document.getElementById('premioImg').src=url; premioSrc=url; }
-  }
+  // Comprime logo e prêmio
+  const logoImg = await compressImage(document.getElementById('logoImg')?.src||null, 200, 0.7);
+  const premioImg = await compressImage(document.getElementById('premioImg')?.src||null, 400, 0.7);
 
   const data={
-    managers: managersToSave, goal, stripeColor,
-    logoImg: logoSrc,
-    premioImg: premioSrc,
+    managers:managersToSave, goal, stripeColor,
+    logoImg, premioImg,
     updatedAt: new Date().toISOString()
   };
+
   if(window.fbSave){
-    await window.fbSave(data);
-    setSyncStatus('ok');
+    try{
+      await window.fbSave(data);
+      setSyncStatus('ok');
+    }catch(e){
+      console.error('Erro ao salvar:',e);
+      setSyncStatus('err');
+      alert('Erro ao salvar: '+e.message);
+    }
   } else {
     setSyncStatus('err');
     alert('Firebase ainda não conectou. Aguarde e tente novamente.');
