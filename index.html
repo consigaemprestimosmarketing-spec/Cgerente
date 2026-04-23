@@ -351,32 +351,35 @@ function setSyncStatus(state){
 }
 
 // ── FIREBASE CALLBACK ──
+// Flags para saber se gerente trocou imagem localmente nessa sessão
+let localLogoChanged=false, localPremioChanged=false;
+
 window.onFirebaseUpdate = function(data){
   if(!data)return;
+  // Ignora update se foi o próprio save do gerente (evita loop)
+  if(isSaving)return;
   managers=(data.managers||DEFAULT_MANAGERS).map(m=>({name:m.name,value:Number(m.value)||0,photo:m.photo||null,carColor:m.carColor||'#f5a623'}));
   goal=data.goal||70000;
   stripeColor=data.stripeColor||'#e63946';
-  if(data.logoImg){const li=document.getElementById('logoImg');if(li)li.src=data.logoImg;}
-  if(data.premioImg){const pi=document.getElementById('premioImg');if(pi)pi.src=data.premioImg;}
+  // Só atualiza imagens se o gerente NÃO trocou localmente nessa sessão
+  if(!localLogoChanged && data.logoImg){const li=document.getElementById('logoImg');if(li)li.src=data.logoImg;}
+  if(!localPremioChanged && data.premioImg){const pi=document.getElementById('premioImg');if(pi)pi.src=data.premioImg;}
   applyMeta();
   renderTrack();
   renderRanking();
   updateTime(data.updatedAt);
   setSyncStatus('ok');
-  if(!isManager){
-    managers.forEach((m,i)=>{
-      const el=document.getElementById('val_'+i);
-      if(el)el.value=m.value;
-    });
-  }
+  if(isManager) renderSidebar();
 };
 
 // ── SALVAR ──
+let isSaving=false;
 async function saveAll(){
   if(!isManager)return;
   managers.forEach((m,i)=>{const el=document.getElementById('val_'+i);if(el)m.value=parseFloat(el.value)||0;});
   parseGoal();
   setSyncStatus('saving');
+  isSaving=true;
   const data={
     managers,goal,stripeColor,
     logoImg: document.getElementById('logoImg')?.src||null,
@@ -390,6 +393,7 @@ async function saveAll(){
     setSyncStatus('err');
     alert('Firebase ainda não conectou. Aguarde e tente novamente.');
   }
+  setTimeout(()=>isSaving=false, 2000);
 }
 
 function debouncedSave(){
@@ -447,13 +451,13 @@ function pickPhoto(i){
 function pickLogo(){
   if(!isManager)return;
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;readFile(f,s=>{const li=document.getElementById('logoImg');if(li)li.src=s;debouncedSave();});};
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;readFile(f,s=>{const li=document.getElementById('logoImg');if(li)li.src=s;localLogoChanged=true;debouncedSave();});};
   inp.click();
 }
 function pickPremio(){
   if(!isManager)return;
   const inp=document.createElement('input');inp.type='file';inp.accept='image/*';
-  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;readFile(f,s=>{const pi=document.getElementById('premioImg');if(pi)pi.src=s;debouncedSave();});};
+  inp.onchange=e=>{const f=e.target.files[0];if(!f)return;readFile(f,s=>{const pi=document.getElementById('premioImg');if(pi)pi.src=s;localPremioChanged=true;debouncedSave();});};
   inp.click();
 }
 
