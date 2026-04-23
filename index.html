@@ -97,7 +97,13 @@ console.log('Firebase conectado!');
   .color-swatch input[type=color]{position:absolute;inset:-4px;width:calc(100% + 8px);height:calc(100% + 8px);border:none;cursor:pointer;opacity:0;}
   .color-swatch .swatch-preview{width:100%;height:100%;border-radius:4px;pointer-events:none;}
   .color-label{font-size:11px;color:var(--muted);}
-  .mgr-row{display:flex;align-items:center;gap:4px;padding:3px 0;}
+  .mgr-row{display:flex;align-items:center;gap:4px;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.04);}
+  .mgr-row:last-child{border-bottom:none;}
+  .edit-name{background:transparent;border:none;border-bottom:1px solid transparent;color:#f0f0f0;font-size:11px;font-family:'Barlow',sans-serif;width:100%;outline:none;padding:1px 2px;transition:border-color .15s;}
+  .edit-name:hover,.edit-name:focus{border-bottom-color:#f5a623;}
+  .edit-origin{background:transparent;border:none;border-bottom:1px solid transparent;color:#888;font-size:10px;font-family:'Barlow',sans-serif;width:100%;outline:none;padding:1px 2px;transition:border-color .15s;}
+  .edit-origin:focus{border-bottom-color:#f5a623;}
+  .edit-origin::placeholder{color:#555;font-style:italic;}
   .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
   .m-av{width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:opacity .15s;}.m-av:hover{opacity:.7;}
   .m-av img{width:100%;height:100%;object-fit:cover;}
@@ -260,7 +266,7 @@ console.log('Firebase conectado!');
   </div>
   <div class="s-section">
     <div class="s-label">Atendentes</div>
-    <div class="hint" style="margin-bottom:2px;">📷 foto &nbsp;|&nbsp; 🚗 cor &nbsp;|&nbsp; 🗑 remover</div>
+    <div class="hint" style="margin-bottom:4px;">✏️ clique no nome para editar &nbsp;|&nbsp; 📷 foto &nbsp;|&nbsp; 🚗 cor &nbsp;|&nbsp; 🗑 remover</div>
     <div id="mgrControls"></div>
     <button class="btn btn-add" onclick="toggleAddForm()">＋ ADICIONAR PESSOA</button>
     <div class="add-form" id="addForm">
@@ -535,36 +541,63 @@ function renderSidebar(){
   const c=document.getElementById('mgrControls');c.innerHTML='';
   managers.forEach((m,i)=>{
     const color=m.carColor||'#f5a623';
-    const row=document.createElement('div');row.className='mgr-row';
-    const dot=document.createElement('span');dot.className='dot';dot.style.background=color;
-    const av=document.createElement('div');av.className='m-av';av.style.cssText=`border:1.5px solid ${color};background:${color}22;`;av.onclick=()=>pickPhoto(i);
+
+    // Card container
+    const card=document.createElement('div');
+    card.style.cssText=`background:#1a1a1a;border:1px solid ${color}44;border-radius:8px;padding:8px;margin-bottom:6px;`;
+
+    // — LINHA 1: foto + campos de texto —
+    const row1=document.createElement('div');
+    row1.style.cssText='display:flex;align-items:center;gap:8px;margin-bottom:6px;';
+
+    // Foto (clicável)
+    const av=document.createElement('div');av.className='m-av';
+    av.style.cssText=`border:2px solid ${color};background:${color}22;width:32px;height:32px;flex-shrink:0;`;
+    av.title='Trocar foto';av.onclick=()=>pickPhoto(i);
     if(m.photo)av.innerHTML=`<img src="${m.photo}">`;else av.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
-    // Nome editável
-    const nmWrap=document.createElement('div');nmWrap.style.cssText='flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;';
+
+    // Campos nome + origem
+    const fields=document.createElement('div');fields.style.cssText='flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;';
+
     const nm=document.createElement('input');nm.type='text';nm.value=m.name;nm.maxLength=20;
-    nm.style.cssText='background:transparent;border:none;border-bottom:1px solid transparent;color:#f0f0f0;font-size:11px;font-family:Barlow,sans-serif;width:100%;outline:none;padding:1px 2px;';
-    nm.onfocus=()=>nm.style.borderBottomColor='#f5a623';
-    nm.onblur=()=>{nm.style.borderBottomColor='transparent';managers[i].name=nm.value.trim()||managers[i].name;renderTrack();renderRanking();debouncedSave();};
+    nm.placeholder='Nome';nm.className='edit-name';
+    nm.onblur=()=>{managers[i].name=nm.value.trim()||managers[i].name;renderTrack();renderRanking();debouncedSave();};
     nm.onkeydown=e=>{if(e.key==='Enter')nm.blur();};
-    // Origem editável
-    const og=document.createElement('input');og.type='text';og.value=m.origin||'';og.maxLength=30;og.placeholder='De onde é?';
-    og.style.cssText='background:transparent;border:none;border-bottom:1px solid transparent;color:#888;font-size:10px;font-family:Barlow,sans-serif;width:100%;outline:none;padding:1px 2px;';
-    og.onfocus=()=>og.style.borderBottomColor='#f5a623';
-    og.onblur=()=>{og.style.borderBottomColor='transparent';managers[i].origin=og.value.trim();debouncedSave();};
+
+    const og=document.createElement('input');og.type='text';og.value=m.origin||'';og.maxLength=30;
+    og.placeholder='De onde é? (ex: São Paulo)';og.className='edit-origin';
+    og.onblur=()=>{managers[i].origin=og.value.trim();renderTrack();debouncedSave();};
     og.onkeydown=e=>{if(e.key==='Enter')og.blur();};
-    nmWrap.append(nm,og);
+
+    fields.append(nm,og);
+    row1.append(av,fields);
+
+    // — LINHA 2: valor + controles —
+    const row2=document.createElement('div');
+    row2.style.cssText='display:flex;align-items:center;gap:4px;';
+
+    // Bolinha de cor
+    const dot=document.createElement('span');dot.className='dot';dot.style.background=color;
+
     const inp=document.createElement('input');inp.type='number';inp.id='val_'+i;inp.value=m.value;inp.min=0;inp.step=100;
+    inp.style.cssText='width:65px;background:#2a2a2a;border:1px solid #333;border-radius:5px;color:#fff;font-size:11px;padding:3px 5px;text-align:right;outline:none;';
     inp.oninput=e=>{managers[i].value=parseFloat(e.target.value)||0;renderTrack();renderRanking();debouncedSave();};
+
     const bM=document.createElement('button');bM.className='ic-btn';bM.textContent='−';bM.onclick=()=>stepVal(i,-100);
     const bP=document.createElement('button');bP.className='ic-btn';bP.textContent='+';bP.onclick=()=>stepVal(i,100);
-    const pb=document.createElement('button');pb.className='ic-btn';pb.textContent='📷';pb.onclick=()=>pickPhoto(i);
-    const ccWrap=document.createElement('div');ccWrap.className='cc-btn';
+    const pb=document.createElement('button');pb.className='ic-btn';pb.title='Trocar foto';pb.textContent='📷';pb.onclick=()=>pickPhoto(i);
+
+    const ccWrap=document.createElement('div');ccWrap.className='cc-btn';ccWrap.title='Cor do carro';
     const ccPrev=document.createElement('div');ccPrev.className='cc-preview';ccPrev.style.background=color;
     const ccInp=document.createElement('input');ccInp.type='color';ccInp.value=color;
     ccInp.oninput=e=>{managers[i].carColor=e.target.value;ccPrev.style.background=e.target.value;renderSidebar();renderTrack();renderRanking();debouncedSave();};
     ccWrap.append(ccPrev,ccInp);
-    const del=document.createElement('button');del.className='ic-btn del';del.textContent='🗑';del.onclick=()=>removePerson(i);
-    row.append(dot,av,nmWrap,inp,bM,bP,pb,ccWrap,del);c.appendChild(row);
+
+    const del=document.createElement('button');del.className='ic-btn del';del.title='Remover';del.textContent='🗑';del.onclick=()=>removePerson(i);
+
+    row2.append(dot,inp,bM,bP,pb,ccWrap,del);
+    card.append(row1,row2);
+    c.appendChild(card);
   });
 }
 
