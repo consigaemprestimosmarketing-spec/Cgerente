@@ -105,7 +105,7 @@ console.log('Firebase conectado!');
   .edit-origin:focus{border-bottom-color:#f5a623;}
   .edit-origin::placeholder{color:#555;font-style:italic;}
   .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
-  .m-av{width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:opacity .15s;}.m-av:hover{opacity:.7;}
+  .m-av{width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:opacity .15s;background-repeat:no-repeat;}.m-av:hover{opacity:.7;}
   .m-av img{width:100%;height:100%;object-fit:cover;}
   .m-name{flex:1;font-size:11px;color:var(--white);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   .mgr-row input[type=number]{width:60px;background:#2a2a2a;border:1px solid var(--border);border-radius:5px;color:var(--white);font-size:11px;padding:3px 5px;text-align:right;outline:none;}
@@ -146,9 +146,9 @@ console.log('Firebase conectado!');
   .d-photo-wrap.clickable{cursor:pointer;}
   .d-photo-wrap.clickable:hover .p-overlay{opacity:1;}
   .p-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;transition:opacity .2s;}
-  .d-photo{width:52px;height:52px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;transition:transform .3s;}
+  .d-photo{width:52px;height:52px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;transition:transform .3s;background-repeat:no-repeat;}
   .lane:hover .d-photo{transform:scale(1.08);}
-  .d-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
+  .d-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;display:block;}
   .d-name{min-width:76px;font-family:'Barlow Condensed';font-size:18px;font-weight:600;margin:0 12px;z-index:1;flex-shrink:0;}
   .p-wrap{flex:1;position:relative;height:14px;z-index:1;margin-right:10px;}
   .p-track{position:absolute;inset:0;border-radius:3px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
@@ -554,7 +554,7 @@ function renderSidebar(){
     const av=document.createElement('div');av.className='m-av';
     av.style.cssText=`border:2px solid ${color};background:${color}22;width:32px;height:32px;flex-shrink:0;`;
     av.title='Trocar foto';av.onclick=()=>pickPhoto(i);
-    if(m.photo)av.innerHTML=`<img src="${m.photo}">`;else av.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
+    if(m.photo){av.style.backgroundImage=`url('${m.photo}')`;av.style.backgroundSize='cover';av.style.backgroundPosition='center';av.textContent='';}else av.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
 
     // Campos nome + origem
     const fields=document.createElement('div');fields.style.cssText='flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;';
@@ -634,7 +634,7 @@ function renderTrack(){
     const pw=document.createElement('div');pw.className='d-photo-wrap'+(isManager?' clickable':'');
     if(isManager)pw.onclick=()=>pickPhoto(i);
     const pd=document.createElement('div');pd.className='d-photo';pd.style.cssText=`border:2px solid ${color};background:${color}22;`;
-    if(m.photo)pd.innerHTML=`<img src="${m.photo}">`;else pd.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
+    if(m.photo){pd.style.backgroundImage=`url('${m.photo}')`;pd.style.backgroundSize='cover';pd.style.backgroundPosition='center';}else pd.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
     const ov=document.createElement('div');ov.className='p-overlay';ov.textContent='📷';
     pw.append(pd,ov);
     const nmBox=document.createElement('div');nmBox.style.cssText='min-width:76px;margin:0 12px;z-index:1;flex-shrink:0;display:flex;flex-direction:column;gap:1px;';
