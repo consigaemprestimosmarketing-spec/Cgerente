@@ -371,12 +371,10 @@ let localLogoChanged=false, localPremioChanged=false;
 
 window.onFirebaseUpdate = function(data){
   if(!data)return;
-  // Ignora update se foi o próprio save do gerente (evita loop)
-  if(isSaving)return;
-  managers=(data.managers||DEFAULT_MANAGERS).map(m=>({name:m.name,origin:m.origin||'',value:Number(m.value)||0,photo:m.photo||null,carColor:m.carColor||'#f5a623'}));
+  if(isSaving)return; // Ignora se o gerente local está salvando
+  const newManagers=(data.managers||DEFAULT_MANAGERS).map(m=>({name:m.name,origin:m.origin||'',value:Number(m.value)||0,photo:m.photo||null,carColor:m.carColor||'#f5a623'}));
   goal=data.goal||70000;
   stripeColor=data.stripeColor||'#e63946';
-  // Só atualiza imagens se o gerente NÃO trocou localmente nessa sessão
   if(!localLogoChanged && data.logoImg){const li=document.getElementById('logoImg');if(li)li.src=data.logoImg;}
   if(!localPremioChanged && data.premioImg){const pi=document.getElementById('premioImg');if(pi)pi.src=data.premioImg;}
   if(data.titleMain!==undefined) titleMain=data.titleMain;
@@ -384,13 +382,31 @@ window.onFirebaseUpdate = function(data){
   if(data.cardTitle!==undefined) cardTitle=data.cardTitle;
   if(data.cardSub!==undefined) cardSub=data.cardSub;
   if(data.cardObj!==undefined) cardObj=data.cardObj;
+
+  if(isManager){
+    // Sync suave: atualiza managers[] mas preserva o DOM da sidebar
+    // Só reconstrói se o número de pessoas mudou
+    const sizeChanged = newManagers.length !== managers.length;
+    managers=newManagers;
+    if(sizeChanged){
+      renderSidebar();
+    } else {
+      // Atualiza inputs existentes sem recriar o DOM (preserva foco e cursor)
+      managers.forEach((m,i)=>{
+        const valEl=document.getElementById('val_'+i);
+        if(valEl && document.activeElement!==valEl) valEl.value=m.value;
+      });
+    }
+  } else {
+    managers=newManagers;
+  }
+
   applyMeta();
   applyTitles();
   renderTrack();
   renderRanking();
   updateTime(data.updatedAt);
   setSyncStatus('ok');
-  if(isManager) renderSidebar();
 };
 
 // ── SALVAR ──
@@ -456,6 +472,7 @@ async function saveAll(){
 
 function debouncedSave(){
   if(saveTimeout)clearTimeout(saveTimeout);
+  isSaving=true; // Bloqueia snapshots enquanto aguarda o save
   saveTimeout=setTimeout(saveAll, 800);
 }
 
