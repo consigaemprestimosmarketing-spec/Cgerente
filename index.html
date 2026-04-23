@@ -15,17 +15,26 @@
   *{box-sizing:border-box;margin:0;padding:0;}
   body{font-family:'Barlow',sans-serif;background:var(--bg);color:var(--white);min-height:100vh;display:flex;overflow-x:hidden;}
 
-  #loginModal{
-    position:fixed;inset:0;background:rgba(0,0,0,.82);
-    display:none;align-items:center;justify-content:center;z-index:999;
-    backdrop-filter:blur(4px);
+  /* ── CONFETE ── */
+  #confettiCanvas{position:fixed;inset:0;pointer-events:none;z-index:9999;}
+
+  /* ── FUNDO ANIMADO ── */
+  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;position:relative;}
+  .main::before{
+    content:'';position:absolute;inset:0;
+    background-image:
+      linear-gradient(rgba(245,166,35,.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(245,166,35,.03) 1px, transparent 1px);
+    background-size:40px 40px;
+    animation:gridMove 8s linear infinite;
+    pointer-events:none;z-index:0;
   }
+  @keyframes gridMove{from{background-position:0 0;}to{background-position:40px 40px;}}
+
+  /* ── LOGIN MODAL ── */
+  #loginModal{position:fixed;inset:0;background:rgba(0,0,0,.82);display:none;align-items:center;justify-content:center;z-index:999;backdrop-filter:blur(4px);}
   #loginModal.open{display:flex;}
-  .login-box{
-    background:var(--panel);border:1px solid var(--border);border-radius:14px;
-    padding:36px 32px;width:320px;display:flex;flex-direction:column;gap:14px;align-items:center;
-    animation:popIn .2s ease;
-  }
+  .login-box{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:36px 32px;width:320px;display:flex;flex-direction:column;gap:14px;align-items:center;animation:popIn .2s ease;}
   @keyframes popIn{from{transform:scale(.92);opacity:0;}to{transform:scale(1);opacity:1;}}
   .login-box h2{font-family:'Bebas Neue';font-size:26px;letter-spacing:2px;color:var(--gold);}
   .login-field{width:100%;background:#2a2a2a;border:1px solid var(--border);border-radius:8px;padding:10px 14px;color:var(--white);font-size:14px;outline:none;font-family:'Barlow';}
@@ -36,29 +45,22 @@
   .login-close:hover{color:var(--white);}
   .login-error{font-size:12px;color:var(--red);display:none;width:100%;text-align:center;}
 
-  #managerBtn{
-    position:fixed;top:12px;right:14px;z-index:200;
-    background:#111;border:1px solid var(--border);border-radius:20px;
-    padding:6px 14px;font-size:11px;font-family:'Barlow Condensed';font-weight:700;
-    letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:7px;
-    transition:border-color .2s,color .2s;
-  }
+  /* ── BOTÃO GERENTE ── */
+  #managerBtn{position:fixed;top:12px;right:14px;z-index:200;background:#111;border:1px solid var(--border);border-radius:20px;padding:6px 14px;font-size:11px;font-family:'Barlow Condensed';font-weight:700;letter-spacing:1px;cursor:pointer;display:flex;align-items:center;gap:7px;transition:border-color .2s,color .2s;}
   #managerBtn:hover{border-color:var(--gold);color:var(--gold);}
   #managerBtn .dot-live{width:7px;height:7px;border-radius:50%;background:#4caf50;animation:pulse 1.4s infinite;}
   @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
 
-  .sidebar{width:242px;min-width:242px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 13px;gap:14px;overflow-y:auto;}
+  /* ── SIDEBAR ── */
+  .sidebar{width:242px;min-width:242px;background:var(--panel);border-right:1px solid var(--border);display:flex;flex-direction:column;padding:16px 13px;gap:14px;overflow-y:auto;position:relative;z-index:10;}
   body.viewer-mode .sidebar{display:none;}
-
   .logo-area{display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--border);padding-bottom:13px;position:relative;border-radius:6px;}
-  .logo-icon{width:42px;height:42px;border-radius:8px;background:var(--gold);overflow:hidden;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:22px;}
-  .logo-icon img{width:100%;height:100%;object-fit:cover;}
+  .logo-icon{width:42px;height:42px;border-radius:8px;overflow:hidden;flex-shrink:0;}
+  .logo-icon img{width:100%;height:100%;object-fit:cover;border-radius:8px;}
   .logo-text .top{font-family:'Bebas Neue';font-size:16px;color:var(--gold);letter-spacing:1px;}
   .logo-text .bot{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;}
-
   .s-section{display:flex;flex-direction:column;gap:7px;}
   .s-label{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;}
-
   .btn{display:flex;align-items:center;justify-content:center;gap:7px;padding:8px 12px;border-radius:7px;font-family:'Barlow Condensed';font-size:13px;font-weight:700;letter-spacing:.5px;cursor:pointer;border:none;transition:all .15s;}
   .btn-gold{background:var(--gold);color:#111;}
   .btn-gold:hover{background:#ffc03a;}
@@ -70,21 +72,15 @@
   .btn-add:hover{background:#4caf50;color:#111;}
   .btn-danger{background:transparent;border:1px solid var(--red);color:var(--red);width:100%;}
   .btn-danger:hover{background:var(--red);color:#fff;}
-
   .input-row{display:flex;align-items:center;gap:6px;background:#2a2a2a;border:1px solid var(--border);border-radius:7px;padding:7px 10px;}
   .input-row input{background:transparent;border:none;color:var(--white);font-size:13px;font-family:'Barlow';flex:1;outline:none;}
   .input-row .icon{color:var(--gold);cursor:pointer;font-size:13px;flex-shrink:0;}
-
-  .obj-img{width:100%;aspect-ratio:16/9;border-radius:8px;border:1px solid var(--border);background:#2a2a2a;display:flex;align-items:center;justify-content:center;font-size:28px;overflow:hidden;}
-  .obj-img img{width:100%;height:100%;object-fit:cover;}
   .hint{font-size:10px;color:var(--muted);}
-
   .color-row{display:flex;align-items:center;gap:8px;}
   .color-swatch{width:28px;height:28px;border-radius:5px;border:1px solid var(--border);cursor:pointer;overflow:hidden;position:relative;flex-shrink:0;}
   .color-swatch input[type=color]{position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);border:none;cursor:pointer;opacity:0;}
   .color-swatch .swatch-preview{width:100%;height:100%;border-radius:4px;pointer-events:none;}
   .color-label{font-size:11px;color:var(--muted);}
-
   .mgr-row{display:flex;align-items:center;gap:4px;padding:3px 0;}
   .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
   .m-av{width:24px;height:24px;border-radius:50%;overflow:hidden;flex-shrink:0;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:13px;transition:opacity .15s;}
@@ -98,7 +94,6 @@
   .cc-btn{width:20px;height:20px;border-radius:4px;border:1px solid var(--border);cursor:pointer;overflow:hidden;flex-shrink:0;background:#2a2a2a;position:relative;}
   .cc-btn input[type=color]{position:absolute;inset:-4px;width:calc(100%+8px);height:calc(100%+8px);border:none;cursor:pointer;opacity:0;}
   .cc-preview{width:100%;height:100%;border-radius:3px;pointer-events:none;}
-
   .add-form{display:none;flex-direction:column;gap:6px;padding:8px;background:#1a1a1a;border:1px solid var(--border);border-radius:8px;margin-top:2px;}
   .add-form.open{display:flex;}
   .add-form input[type=text]{background:#2a2a2a;border:1px solid var(--border);border-radius:5px;color:var(--white);font-size:12px;padding:5px 8px;outline:none;width:100%;}
@@ -106,88 +101,133 @@
   .add-form-row{display:flex;gap:6px;align-items:center;}
   .add-form-row label{font-size:10px;color:var(--muted);flex-shrink:0;}
 
-  .main{flex:1;display:flex;flex-direction:column;overflow:hidden;}
-  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px 10px;border-bottom:1px solid var(--border);}
+  /* ── TOPBAR ── */
+  .topbar{display:flex;align-items:center;justify-content:space-between;padding:14px 22px 10px;border-bottom:1px solid var(--border);position:relative;z-index:1;}
   .race-title{display:flex;align-items:center;gap:10px;}
   .race-title h1{font-family:'Bebas Neue';font-size:30px;letter-spacing:2px;}
+  /* ── título com brilho animado ── */
+  .race-title h1{
+    background:linear-gradient(90deg,#f5a623,#fff8e1,#f5a623,#ffd97d,#f5a623);
+    background-size:300% auto;
+    -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+    animation:shine 4s linear infinite;
+  }
+  @keyframes shine{from{background-position:0%}to{background-position:300%}}
   .subtitle{font-size:12px;color:var(--muted);margin-top:2px;}
   .lu-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;text-align:right;}
   .lu-time{font-size:13px;margin-top:2px;display:flex;align-items:center;gap:5px;justify-content:flex-end;}
 
-  .content{flex:1;display:flex;gap:14px;padding:16px 22px;overflow:auto;}
+  /* ── CONTENT ── */
+  .content{flex:1;display:flex;gap:14px;padding:16px 22px;overflow:auto;position:relative;z-index:1;}
   .track-area{flex:1;display:flex;flex-direction:column;gap:14px;}
 
+  /* ── SCALE ── */
   .scale-bar{display:flex;align-items:flex-end;padding:0 60px 0 152px;}
   .scale-tick{flex:1;text-align:center;font-size:11px;color:var(--muted);}
   .scale-tick::before{content:'';display:block;width:1px;height:6px;background:var(--border);margin:0 auto 3px;}
   .scale-tick.goal{color:var(--red);font-weight:700;}
   .scale-tick.goal .gl{font-size:9px;display:block;text-transform:uppercase;letter-spacing:1px;}
 
-  .track{background:#2a2a2a;border-radius:10px;border:2px solid var(--border);overflow:hidden;position:relative;}
-  .track::before{
-    content:'';position:absolute;left:0;top:0;bottom:0;width:18px;
+  /* ── TRACK ── */
+  .track{background:#2a2a2a;border-radius:10px;border:2px solid var(--border);overflow:hidden;position:relative;
+    box-shadow:0 0 30px rgba(245,166,35,.06);}
+  .track::before{content:'';position:absolute;left:0;top:0;bottom:0;width:18px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18'%3E%3Crect width='9' height='9' fill='white'/%3E%3Crect x='9' y='9' width='9' height='9' fill='white'/%3E%3Crect x='9' y='0' width='9' height='9' fill='black'/%3E%3Crect x='0' y='9' width='9' height='9' fill='black'/%3E%3C/svg%3E");
-    background-size:18px 18px;z-index:2;
-  }
+    background-size:18px 18px;z-index:2;}
   .track-finish{position:absolute;right:0;top:0;bottom:0;width:14px;z-index:2;}
 
-  .lane{display:flex;align-items:center;padding:10px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);min-height:80px;}
+  /* ── LANE — entrada animada ── */
+  .lane{display:flex;align-items:center;padding:10px 28px;position:relative;border-bottom:1px solid rgba(255,255,255,.05);min-height:80px;
+    opacity:0;transform:translateX(-30px);
+    animation:laneIn .5s ease forwards;}
   .lane:last-child{border-bottom:none;}
+  @keyframes laneIn{to{opacity:1;transform:translateX(0);}}
 
+  /* ── HOVER na lane ── */
+  .lane::after{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.02),transparent);opacity:0;transition:opacity .3s;pointer-events:none;}
+  .lane:hover::after{opacity:1;}
+  .lane:hover .d-name{text-shadow:0 0 12px currentColor;}
+
+  /* ── 1º LUGAR destaque pulsante ── */
+  .lane.first-place{background:linear-gradient(90deg,rgba(245,166,35,.08),transparent) !important;}
+  .lane.first-place .d-name{animation:namePulse 2s ease-in-out infinite;}
+  @keyframes namePulse{0%,100%{opacity:1;}50%{opacity:.7;}}
+  .lane.first-place .p-bar::after{
+    content:'👑';position:absolute;right:-22px;top:-18px;font-size:16px;
+    animation:crownFloat 1.5s ease-in-out infinite;
+  }
+  @keyframes crownFloat{0%,100%{transform:translateY(0);}50%{transform:translateY(-4px);}}
+
+  /* ── FOTO ── */
   .d-photo-wrap{width:52px;height:52px;border-radius:50%;flex-shrink:0;z-index:1;position:relative;}
   .d-photo-wrap.clickable{cursor:pointer;}
   .d-photo-wrap.clickable:hover .p-overlay{opacity:1;}
   .p-overlay{position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.65);display:flex;align-items:center;justify-content:center;font-size:16px;opacity:0;transition:opacity .2s;}
-  .d-photo{width:52px;height:52px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;}
+  .d-photo{width:52px;height:52px;border-radius:50%;background:#333;display:flex;align-items:center;justify-content:center;font-size:22px;overflow:hidden;transition:transform .3s;}
+  .lane:hover .d-photo{transform:scale(1.08);}
   .d-photo img{width:100%;height:100%;object-fit:cover;border-radius:50%;}
 
-  .d-name{min-width:76px;font-family:'Barlow Condensed';font-size:18px;font-weight:600;margin:0 12px;z-index:1;flex-shrink:0;}
+  /* ── NOME ── */
+  .d-name{min-width:76px;font-family:'Barlow Condensed';font-size:18px;font-weight:600;margin:0 12px;z-index:1;flex-shrink:0;transition:text-shadow .3s;}
+
+  /* ── BARRA ── */
   .p-wrap{flex:1;position:relative;height:14px;z-index:1;margin-right:10px;}
   .p-track{position:absolute;inset:0;border-radius:3px;background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);}
   .p-bar{height:100%;border-radius:3px;position:relative;transition:width .8s cubic-bezier(.25,.8,.25,1);}
 
-  .car-wrap{
-    position:absolute;top:50%;right:-30px;
-    transform:translateY(-50%);
-    z-index:3;line-height:1;
-    filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));
+  /* ── RASTRO DE LUZ ── */
+  .p-bar::before{
+    content:'';position:absolute;top:0;right:0;bottom:0;width:60px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.35));
+    border-radius:3px;
+    animation:trailPulse 1.8s ease-in-out infinite;
   }
+  @keyframes trailPulse{0%,100%{opacity:.4;width:40px;}50%{opacity:1;width:70px;}}
+
+  /* ── CARRO ── */
+  .car-wrap{position:absolute;top:50%;right:-30px;transform:translateY(-50%);z-index:3;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.7));}
+
+  /* ── FARÓIS ── */
+  .headlight{position:absolute;right:-6px;top:50%;transform:translateY(-50%);width:8px;height:4px;border-radius:50%;pointer-events:none;z-index:4;}
+  .headlight.on{background:rgba(255,250,200,.9);box-shadow:0 0 8px 4px rgba(255,250,150,.6),0 0 20px 8px rgba(255,240,100,.2);animation:headlightBlink 3s ease-in-out infinite;}
+  @keyframes headlightBlink{0%,90%,100%{opacity:1;}95%{opacity:.4;}}
+
   @keyframes idle{
     0%,100%{transform:translateY(-50%) translateX(0) rotate(0deg);}
-    25%    {transform:translateY(calc(-50% - .6px)) translateX(.4px) rotate(.15deg);}
-    50%    {transform:translateY(calc(-50% + .5px)) translateX(-.3px) rotate(-.1deg);}
-    75%    {transform:translateY(calc(-50% - .3px)) translateX(.5px) rotate(.12deg);}
+    25%{transform:translateY(calc(-50% - .6px)) translateX(.4px) rotate(.15deg);}
+    50%{transform:translateY(calc(-50% + .5px)) translateX(-.3px) rotate(-.1deg);}
+    75%{transform:translateY(calc(-50% - .3px)) translateX(.5px) rotate(.12deg);}
   }
   @keyframes racing{
-    0%  {transform:translateY(-50%) translateX(0)    rotate(0deg)   scaleX(1);}
-    20% {transform:translateY(calc(-50% - 2px)) translateX(1px)   rotate(-.6deg) scaleX(1.03);}
-    40% {transform:translateY(calc(-50% + 2px)) translateX(-1px)  rotate(.5deg)  scaleX(.98);}
+    0%  {transform:translateY(-50%) translateX(0) rotate(0deg) scaleX(1);}
+    20% {transform:translateY(calc(-50% - 2px)) translateX(1px) rotate(-.6deg) scaleX(1.03);}
+    40% {transform:translateY(calc(-50% + 2px)) translateX(-1px) rotate(.5deg) scaleX(.98);}
     60% {transform:translateY(calc(-50% - 1.5px)) translateX(1.5px) rotate(-.4deg) scaleX(1.02);}
-    80% {transform:translateY(calc(-50% + 1px)) translateX(-.5px)  rotate(.3deg)  scaleX(.99);}
-    100%{transform:translateY(-50%) translateX(0)    rotate(0deg)   scaleX(1);}
+    80% {transform:translateY(calc(-50% + 1px)) translateX(-.5px) rotate(.3deg) scaleX(.99);}
+    100%{transform:translateY(-50%) translateX(0) rotate(0deg) scaleX(1);}
   }
-  .car-wrap.idle   {animation:idle   1.1s ease-in-out infinite;}
-  .car-wrap.racing {animation:racing  .28s linear infinite;}
+  .car-wrap.idle  {animation:idle  1.1s ease-in-out infinite;}
+  .car-wrap.racing{animation:racing .28s linear infinite;}
 
+  /* ── FUMAÇA ── */
   .smoke-wrap{position:absolute;left:-18px;top:50%;transform:translateY(-50%);pointer-events:none;overflow:visible;}
-  @keyframes smokeUp{
-    0%  {opacity:.7;transform:translate(0,0) scale(.5);}
-    100%{opacity:0; transform:translate(-18px,-10px) scale(1.4);}
-  }
-  .smoke-puff{
-    position:absolute;width:10px;height:10px;border-radius:50%;
-    background:rgba(200,200,200,.55);
-    animation:smokeUp .7s ease-out forwards;
-  }
+  @keyframes smokeUp{0%{opacity:.7;transform:translate(0,0) scale(.5);}100%{opacity:0;transform:translate(-18px,-10px) scale(1.4);}}
+  .smoke-puff{position:absolute;width:10px;height:10px;border-radius:50%;background:rgba(200,200,200,.55);animation:smokeUp .7s ease-out forwards;}
 
-  .val-badge{background:#111;border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-family:'Barlow Condensed';font-size:14px;font-weight:700;z-index:1;white-space:nowrap;flex-shrink:0;margin-left:38px;}
+  /* ── BADGE DE VALOR ── */
+  .val-badge{background:#111;border:1.5px solid var(--border);border-radius:6px;padding:5px 10px;font-family:'Barlow Condensed';font-size:14px;font-weight:700;z-index:1;white-space:nowrap;flex-shrink:0;margin-left:38px;transition:transform .2s,box-shadow .2s;}
+  .val-badge.bump{animation:badgeBump .4s ease;}
+  @keyframes badgeBump{0%,100%{transform:scale(1);}40%{transform:scale(1.18);}70%{transform:scale(.96);}}
+
   .dash-mark{position:absolute;width:1px;top:0;bottom:0;background:rgba(255,255,255,.07);}
 
+  /* ── BOTTOM ── */
   .bottom-row{display:flex;gap:14px;}
   .ranking-card{flex:1;background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px 20px;}
   .card-title{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:14px;}
   .rank-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 30px;}
-  .rank-row{display:flex;align-items:center;gap:8px;}
+  .rank-row{display:flex;align-items:center;gap:8px;transition:transform .2s;}
+  .rank-row:hover{transform:translateX(4px);}
   .rank-pos{font-size:11px;color:var(--muted);width:16px;}
   .rank-name{flex:1;font-family:'Barlow Condensed';font-size:15px;}
   .rank-val{font-size:13px;font-weight:600;}
@@ -195,12 +235,51 @@
   .info-card p{font-size:13px;color:#aaa;line-height:1.6;}
   .info-hl{color:var(--red);font-weight:700;}
 
+  /* ── OBJ PANEL ── */
   .obj-panel{width:180px;flex-shrink:0;}
-  .obj-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-bottom:16px;}
+  .obj-card{background:var(--card);border:1px solid var(--border);border-radius:10px;overflow:hidden;display:flex;flex-direction:column;align-items:center;padding-bottom:16px;
+    box-shadow:0 0 20px rgba(245,166,35,.1);
+    animation:cardGlow 3s ease-in-out infinite;}
+  @keyframes cardGlow{0%,100%{box-shadow:0 0 20px rgba(245,166,35,.1);}50%{box-shadow:0 0 30px rgba(245,166,35,.25);}}
   .obj-inner{padding:12px 14px 0;text-align:center;}
+
+  /* ── OVERLAY DE VITÓRIA ── */
+  #victoryOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,.85);
+    display:none;align-items:center;justify-content:center;
+    z-index:9998;backdrop-filter:blur(6px);
+    flex-direction:column;gap:16px;
+  }
+  #victoryOverlay.show{display:flex;}
+  .victory-box{
+    background:linear-gradient(135deg,#1a1a1a,#2a2a1a);
+    border:2px solid var(--gold);border-radius:20px;
+    padding:40px 50px;text-align:center;
+    animation:victoryPop .5s cubic-bezier(.34,1.56,.64,1) forwards;
+  }
+  @keyframes victoryPop{from{transform:scale(.5);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .victory-box h2{font-family:'Bebas Neue';font-size:52px;color:var(--gold);letter-spacing:4px;animation:shine 2s linear infinite;}
+  .victory-box .winner-name{font-family:'Bebas Neue';font-size:36px;margin-top:6px;}
+  .victory-box .winner-val{font-size:18px;color:var(--muted);margin-top:4px;}
+  .victory-close{margin-top:16px;padding:10px 28px;border-radius:8px;border:none;background:var(--gold);color:#111;font-family:'Barlow Condensed';font-size:16px;font-weight:700;cursor:pointer;}
+  .victory-close:hover{background:#ffc03a;}
 </style>
 </head>
 <body class="viewer-mode">
+
+<!-- CANVAS CONFETE -->
+<canvas id="confettiCanvas"></canvas>
+
+<!-- OVERLAY DE VITÓRIA -->
+<div id="victoryOverlay">
+  <div class="victory-box">
+    <div style="font-size:56px">🏆</div>
+    <h2>META ATINGIDA!</h2>
+    <div class="winner-name" id="victoryName">—</div>
+    <div class="winner-val" id="victoryVal">—</div>
+  </div>
+  <button class="victory-close" onclick="closeVictory()">🎉 FECHAR</button>
+</div>
 
 <!-- LOGIN MODAL -->
 <div id="loginModal">
@@ -223,19 +302,15 @@
 <!-- SIDEBAR -->
 <aside class="sidebar">
   <div class="logo-area">
-    <div class="logo-icon" id="logoIcon">
-      <img src="img/logo.png" onerror="this.parentElement.textContent='🔥'">
-    </div>
+    <div class="logo-icon"><img src="img/logo.png" alt="Logo"></div>
     <div class="logo-text"><div class="top">COCO BAMBU</div><div class="bot">Disputa</div></div>
   </div>
-
   <div class="s-section">
     <div class="s-label">Painel de Controle</div>
     <button class="btn btn-gold" onclick="importExcel()">⬆ IMPORTAR CSV</button>
     <div class="hint" style="text-align:center;margin-top:-2px;">Formato: Nome,Valor</div>
     <button class="btn btn-outline" onclick="exportImage()">⬇ EXPORTAR IMAGEM</button>
   </div>
-
   <div class="s-section">
     <div class="s-label">Meta da Disputa</div>
     <div class="input-row">
@@ -243,7 +318,6 @@
       <span class="icon" onclick="document.getElementById('metaInput').focus()">✏</span>
     </div>
   </div>
-
   <div class="s-section">
     <div class="s-label">Cor da Linha de Chegada</div>
     <div class="color-row">
@@ -254,7 +328,6 @@
       <span class="color-label">Cor da faixa xadrez</span>
     </div>
   </div>
-
   <div class="s-section">
     <div class="s-label">Atendentes</div>
     <div class="hint" style="margin-bottom:2px;">📷 foto &nbsp;|&nbsp; 🚗 cor &nbsp;|&nbsp; 🗑 remover</div>
@@ -272,7 +345,6 @@
       </div>
     </div>
   </div>
-
   <button class="btn btn-save" onclick="saveAll();renderAll()">💾 SALVAR ALTERAÇÕES</button>
   <button class="btn btn-danger" onclick="logout()">🚪 SAIR</button>
 </aside>
@@ -289,7 +361,6 @@
       <div class="lu-time" id="luTime">🕐 --/--/---- às --:--</div>
     </div>
   </div>
-
   <div class="content">
     <div class="track-area">
       <div class="scale-bar" id="scaleBar"></div>
@@ -311,13 +382,11 @@
         </div>
       </div>
     </div>
-
     <div class="obj-panel">
       <div class="obj-card">
-        <!-- imagem do prêmio fixa da pasta img/ -->
         <div id="objCardImg" style="width:100%;height:140px;overflow:hidden;">
           <img src="img/premio.png" style="width:100%;height:140px;object-fit:cover;"
-            onerror="this.parentElement.style.background='linear-gradient(135deg,#1a3a2a,#2d6a4a)';this.parentElement.innerHTML='<div style=\'display:flex;align-items:center;justify-content:center;height:140px;font-size:48px\'>🌴</div>'">
+            onerror="this.parentElement.style.cssText='background:linear-gradient(135deg,#1a3a2a,#2d6a4a);display:flex;align-items:center;justify-content:center;height:140px;';this.parentElement.innerHTML='<div style=\'font-size:48px\'>🌴</div>'">
         </div>
         <div class="obj-inner">
           <div style="font-family:'Bebas Neue';font-size:32px;color:var(--gold);letter-spacing:3px;line-height:1">COCO<br>BAMBU</div>
@@ -326,20 +395,15 @@
           <div style="font-family:'Bebas Neue';font-size:26px;color:var(--gold);letter-spacing:2px;">OBJETIVO!</div>
           <div style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;">BATER A META DE</div>
           <div style="font-family:'Bebas Neue';font-size:24px;color:var(--gold);" id="objCardVal">R$ 70.000,00</div>
-          <div style="font-size:20px;margin-top:4px">🌿</div>
+          <div style="font-size:20px;margin-top:4px">💵</div>
         </div>
-      </div>
-
-      <!-- imagem do objetivo fixa da pasta img/ -->
-      <div style="margin-top:10px;border-radius:8px;overflow:hidden;border:1px solid var(--border);">
-        <img src="img/objetivo.png" style="width:100%;display:block;object-fit:cover;"
-          onerror="this.style.display='none'">
       </div>
     </div>
   </div>
 </main>
 
 <script>
+// ── CONFIG ────────────────────────────────────────────────────────────
 const PW_KEY       = 'disputaManagerPw';
 const STATE_KEY    = 'disputaState';
 const SESSION_KEY  = 'disputaSession';
@@ -356,18 +420,84 @@ const DEFAULT_MANAGERS = [
 const DEFAULT_EMOJI = ['👩','👩','👩','👨','👨'];
 
 let managers, goal, stripeColor;
-
-// ── imagens fixas — apontam para a pasta img/ no GitHub ───────────────
-let logoSrc    = 'img/logo.png';
-let objImgSrc  = 'img/objetivo.png';
-let objCardSrc = 'img/premio.png';
-
 let isManager      = false;
 let viewerInterval = null;
 let prevValues     = {};
 const racingTimers = {};
+const metGoal      = new Set(); // controla quem já ganhou confete
 
-// ── LOGIN ──────────────────────────────────────────────────────────────
+// ── CONFETE ───────────────────────────────────────────────────────────
+const confettiCanvas = document.getElementById('confettiCanvas');
+const ctx = confettiCanvas.getContext('2d');
+let confettiPieces = [];
+let confettiActive = false;
+let confettiTimer  = null;
+
+function resizeConfetti(){
+  confettiCanvas.width  = window.innerWidth;
+  confettiCanvas.height = window.innerHeight;
+}
+window.addEventListener('resize', resizeConfetti);
+resizeConfetti();
+
+function launchConfetti(){
+  confettiPieces = [];
+  const colors = ['#f5a623','#ff6eb4','#4da6ff','#4caf50','#e63946','#fff','#ffd700'];
+  for(let i=0;i<220;i++){
+    confettiPieces.push({
+      x: Math.random()*confettiCanvas.width,
+      y: -10 - Math.random()*200,
+      w: 8+Math.random()*8, h: 6+Math.random()*6,
+      color: colors[Math.floor(Math.random()*colors.length)],
+      rot: Math.random()*360,
+      vx: (Math.random()-0.5)*4,
+      vy: 2+Math.random()*4,
+      vr: (Math.random()-0.5)*6,
+      shape: Math.random()>.5?'rect':'circle'
+    });
+  }
+  confettiActive = true;
+  if(confettiTimer) clearTimeout(confettiTimer);
+  confettiTimer = setTimeout(()=>{confettiActive=false;}, 4500);
+  animateConfetti();
+}
+function animateConfetti(){
+  ctx.clearRect(0,0,confettiCanvas.width,confettiCanvas.height);
+  if(!confettiActive && confettiPieces.every(p=>p.y>confettiCanvas.height)){return;}
+  confettiPieces.forEach(p=>{
+    p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr; p.vy+=0.07;
+    ctx.save();
+    ctx.translate(p.x,p.y);
+    ctx.rotate(p.rot*Math.PI/180);
+    ctx.fillStyle=p.color;
+    ctx.globalAlpha=confettiActive?1:Math.max(0,1-(p.y-confettiCanvas.height*0.7)/(confettiCanvas.height*0.3));
+    if(p.shape==='circle'){ctx.beginPath();ctx.arc(0,0,p.w/2,0,Math.PI*2);ctx.fill();}
+    else{ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);}
+    ctx.restore();
+  });
+  if(confettiPieces.some(p=>p.y<confettiCanvas.height+20)) requestAnimationFrame(animateConfetti);
+}
+
+// ── VITÓRIA ───────────────────────────────────────────────────────────
+function showVictory(name, value){
+  document.getElementById('victoryName').textContent = '🏆 '+name;
+  document.getElementById('victoryVal').textContent  = fmt(value)+' — META BATIDA!';
+  document.getElementById('victoryOverlay').classList.add('show');
+  launchConfetti();
+}
+function closeVictory(){
+  document.getElementById('victoryOverlay').classList.remove('show');
+}
+function checkGoals(){
+  managers.forEach((m,i)=>{
+    if(m.value >= goal && !metGoal.has(i)){
+      metGoal.add(i);
+      setTimeout(()=>showVictory(m.name, m.value), 600);
+    }
+  });
+}
+
+// ── LOGIN ─────────────────────────────────────────────────────────────
 function onManagerBtnClick(){ isManager ? logout() : openLogin(); }
 function openLogin(){
   document.getElementById('loginModal').classList.add('open');
@@ -383,8 +513,7 @@ function tryLogin(){
   if(pw===(localStorage.getItem(PW_KEY)||DEFAULT_PW)){
     const expires=Date.now()+SESSION_DAYS*24*60*60*1000;
     localStorage.setItem(SESSION_KEY,JSON.stringify({expires}));
-    applyManagerMode();
-    closeLogin();
+    applyManagerMode(); closeLogin();
   } else {
     const err=document.getElementById('loginError');
     err.style.display='block';
@@ -415,7 +544,7 @@ function checkSession(){
   return false;
 }
 
-// ── POLLING ────────────────────────────────────────────────────────────
+// ── POLLING ───────────────────────────────────────────────────────────
 function startViewerPolling(){
   if(viewerInterval) clearInterval(viewerInterval);
   let lastRaw=localStorage.getItem(STATE_KEY);
@@ -429,16 +558,14 @@ function startViewerPolling(){
   },3000);
 }
 
-// ── ESTADO ─────────────────────────────────────────────────────────────
+// ── ESTADO ────────────────────────────────────────────────────────────
 function loadState(){
   try{
     const s=JSON.parse(localStorage.getItem(STATE_KEY)||'{}');
     managers=(s.managers||JSON.parse(JSON.stringify(DEFAULT_MANAGERS))).map(m=>({
       name:m.name, value:Number(m.value)||0, photo:m.photo||null, carColor:m.carColor||'#f5a623'
     }));
-    goal=s.goal||70000;
-    stripeColor=s.stripeColor||'#e63946';
-    // imagens NÃO vêm do localStorage — são sempre os arquivos da pasta img/
+    goal=s.goal||70000; stripeColor=s.stripeColor||'#e63946';
   }catch(e){
     managers=JSON.parse(JSON.stringify(DEFAULT_MANAGERS));
     goal=70000; stripeColor='#e63946';
@@ -448,7 +575,6 @@ function saveAll(){
   if(!isManager) return;
   managers.forEach((m,i)=>{ const el=document.getElementById('val_'+i); if(el) m.value=parseFloat(el.value)||0; });
   parseGoal();
-  // salva apenas dados — sem imagens no localStorage
   try{ localStorage.setItem(STATE_KEY,JSON.stringify({managers,goal,stripeColor})); }catch(e){}
   document.getElementById('infoMeta').textContent=fmt(goal);
   document.getElementById('objCardVal').textContent=fmt(goal);
@@ -460,7 +586,7 @@ function parseGoal(){
   const p=parseFloat(raw); if(!isNaN(p)) goal=p;
 }
 
-// ── IMAGENS (apenas foto dos atendentes — gerente pode trocar) ─────────
+// ── FOTO ATENDENTES ───────────────────────────────────────────────────
 function readFile(f,cb){const r=new FileReader();r.onload=e=>cb(e.target.result);r.readAsDataURL(f);}
 function pickPhoto(i){
   if(!isManager) return;
@@ -469,7 +595,7 @@ function pickPhoto(i){
   inp.click();
 }
 
-// ── STRIPE ─────────────────────────────────────────────────────────────
+// ── STRIPE ────────────────────────────────────────────────────────────
 function updateStripeColor(val){stripeColor=val;document.getElementById('stripeSwatchPreview').style.background=val;applyStripe();saveAll();}
 function applyStripe(){
   const el=document.getElementById('trackFinish');
@@ -480,7 +606,7 @@ function applyStripe(){
   document.getElementById('stripeSwatchPreview').style.background=stripeColor;
 }
 
-// ── PESSOAS ────────────────────────────────────────────────────────────
+// ── PESSOAS ───────────────────────────────────────────────────────────
 function toggleAddForm(){const f=document.getElementById('addForm');f.classList.toggle('open');if(f.classList.contains('open'))document.getElementById('newName').focus();}
 function addPerson(){
   const name=document.getElementById('newName').value.trim();
@@ -499,7 +625,7 @@ function stepVal(i,d){
   renderTrack(); renderRanking(); saveAll();
 }
 
-// ── SIDEBAR ────────────────────────────────────────────────────────────
+// ── SIDEBAR ───────────────────────────────────────────────────────────
 function renderSidebar(){
   const c=document.getElementById('mgrControls');c.innerHTML='';
   managers.forEach((m,i)=>{
@@ -525,7 +651,7 @@ function renderSidebar(){
   });
 }
 
-// ── SVG CARRO ──────────────────────────────────────────────────────────
+// ── SVG CARRO ─────────────────────────────────────────────────────────
 function shadeColor(hex,pct){
   let c=hex.replace('#','');if(c.length===3)c=c.split('').map(x=>x+x).join('');
   let r=parseInt(c.substr(0,2),16),g=parseInt(c.substr(2,2),16),b=parseInt(c.substr(4,2),16);
@@ -552,7 +678,7 @@ function carSVG(color){
   </svg>`;
 }
 
-// ── FUMAÇA ─────────────────────────────────────────────────────────────
+// ── FUMAÇA ────────────────────────────────────────────────────────────
 function spawnSmoke(carWrap,count=2){
   for(let k=0;k<count;k++){
     setTimeout(()=>{
@@ -560,32 +686,46 @@ function spawnSmoke(carWrap,count=2){
       if(!sw){sw=document.createElement('div');sw.className='smoke-wrap';carWrap.appendChild(sw);}
       const p=document.createElement('div');p.className='smoke-puff';
       p.style.cssText=`left:${-4+Math.random()*6}px;top:${-4+Math.random()*8}px;width:${8+Math.random()*6}px;height:${8+Math.random()*6}px;animation-delay:${Math.random()*.15}s;`;
-      sw.appendChild(p);
-      setTimeout(()=>p.remove(),800);
+      sw.appendChild(p); setTimeout(()=>p.remove(),800);
     },k*120);
   }
 }
 
-// ── ESTADO DO CARRO ────────────────────────────────────────────────────
+// ── ESTADO DO CARRO ───────────────────────────────────────────────────
 function setCarState(carWrap,state,idx){
   if(state==='racing'){
-    carWrap.classList.remove('idle');
-    carWrap.classList.add('racing');
+    carWrap.classList.remove('idle'); carWrap.classList.add('racing');
     if(racingTimers[idx]) clearTimeout(racingTimers[idx]);
     racingTimers[idx]=setTimeout(()=>{
-      carWrap.classList.remove('racing');
-      carWrap.classList.add('idle');
+      carWrap.classList.remove('racing'); carWrap.classList.add('idle');
       delete racingTimers[idx];
     },2500);
   } else {
-    if(!racingTimers[idx]){
-      carWrap.classList.remove('racing');
-      carWrap.classList.add('idle');
-    }
+    if(!racingTimers[idx]){ carWrap.classList.remove('racing'); carWrap.classList.add('idle'); }
   }
 }
 
-// ── SCALE ──────────────────────────────────────────────────────────────
+// ── CONTADOR ANIMADO DO BADGE ─────────────────────────────────────────
+function animateCounter(el, from, to, color){
+  const duration = 700;
+  const start    = performance.now();
+  el.classList.remove('bump');
+  void el.offsetWidth;
+  el.classList.add('bump');
+  function step(now){
+    const progress = Math.min((now-start)/duration, 1);
+    const ease     = 1 - Math.pow(1-progress, 3);
+    const current  = Math.round(from + (to-from)*ease);
+    el.textContent = fmt(current);
+    el.style.color = color;
+    el.style.borderColor = color+'55';
+    if(progress < 1) requestAnimationFrame(step);
+    else { el.textContent = fmt(to); }
+  }
+  requestAnimationFrame(step);
+}
+
+// ── SCALE ─────────────────────────────────────────────────────────────
 function renderScale(){
   const bar=document.getElementById('scaleBar');bar.innerHTML='';parseGoal();
   [0,goal*.25,goal*.5,goal*.75,goal].forEach((t,idx)=>{
@@ -596,15 +736,18 @@ function renderScale(){
   });
 }
 
-// ── BUILD LANE ─────────────────────────────────────────────────────────
+// ── BUILD LANE ────────────────────────────────────────────────────────
 function buildLane(m,i){
-  const pct=Math.min((m.value/goal)*100,100),color=m.carColor||'#fff';
+  const pct=Math.min((m.value/goal)*100,100), color=m.carColor||'#fff';
   const lane=document.createElement('div');lane.className='lane';lane.dataset.idx=i;
   lane.style.background=i%2===0?'rgba(255,255,255,.015)':'transparent';
+  lane.style.animationDelay=(i*0.1)+'s';
+
   [25,50,75].forEach(p=>{
     const mk=document.createElement('div');mk.className='dash-mark';
     mk.style.left=`calc(148px + (100% - 210px)*${p/100})`;lane.appendChild(mk);
   });
+
   const pw=document.createElement('div');
   pw.className='d-photo-wrap'+(isManager?' clickable':'');
   if(isManager){pw.title='Trocar foto';pw.onclick=()=>pickPhoto(i);}
@@ -613,32 +756,45 @@ function buildLane(m,i){
   if(m.photo)pd.innerHTML=`<img src="${m.photo}">`;else pd.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
   const ov=document.createElement('div');ov.className='p-overlay';ov.textContent='📷';
   pw.append(pd,ov);
+
   const nm=document.createElement('div');nm.className='d-name';nm.textContent=m.name;nm.style.color=color;
   const pWrap=document.createElement('div');pWrap.className='p-wrap';
   const pTrack=document.createElement('div');pTrack.className='p-track';
   const pBar=document.createElement('div');pBar.className='p-bar';
-  pBar.style.cssText=`width:0%;background:${color};height:100%;border-radius:3px;box-shadow:0 0 12px ${color}66;position:relative;`;
+  pBar.style.cssText=`width:0%;background:linear-gradient(90deg,${color},${shadeColor(color,20)});height:100%;border-radius:3px;box-shadow:0 0 12px ${color}66;position:relative;`;
+
+  // farol
+  const hl=document.createElement('div');hl.className='headlight on';
+  pBar.appendChild(hl);
+
   const cw=document.createElement('div');cw.className='car-wrap';cw.innerHTML=carSVG(color);
   pBar.appendChild(cw);pTrack.appendChild(pBar);pWrap.appendChild(pTrack);
+
   const badge=document.createElement('div');badge.className='val-badge';
   badge.textContent=fmt(m.value);badge.style.color=color;badge.style.borderColor=color+'55';
+
   lane.append(pw,nm,pWrap,badge);
   requestAnimationFrame(()=>requestAnimationFrame(()=>{ pBar.style.width=pct+'%'; }));
   setCarState(cw,'idle',i);
   return lane;
 }
 
-// ── RENDER TRACK ───────────────────────────────────────────────────────
+// ── RENDER TRACK ──────────────────────────────────────────────────────
 function renderTrack(){
   renderScale(); applyStripe();
   const track=document.getElementById('track');
   const existingLanes=Array.from(track.querySelectorAll('.lane'));
+
+  // descobre o 1º lugar
+  const maxVal = Math.max(...managers.map(m=>m.value));
+
   managers.forEach((m,i)=>{
     const pct    = Math.min((m.value/goal)*100,100);
     const color  = m.carColor||'#fff';
     const oldVal = prevValues[i];
     const changed= oldVal!==undefined && m.value!==oldVal;
     const existingLane=existingLanes[i];
+
     if(!existingLane){
       const lane=buildLane(m,i);
       track.insertBefore(lane,document.getElementById('trackFinish'));
@@ -647,28 +803,38 @@ function renderTrack(){
       const badge = existingLane.querySelector('.val-badge');
       const cw    = existingLane.querySelector('.car-wrap');
       const pd    = existingLane.querySelector('.d-photo');
-      if(pBar)  pBar.style.width=pct+'%';
-      if(badge){ badge.textContent=fmt(m.value); badge.style.color=color; badge.style.borderColor=color+'55'; }
+
+      if(pBar) pBar.style.width=pct+'%';
+      if(badge && changed) animateCounter(badge, oldVal||0, m.value, color);
+      else if(badge){ badge.textContent=fmt(m.value); badge.style.color=color; badge.style.borderColor=color+'55'; }
       if(pd){
         pd.style.cssText=`border:2px solid ${color};background:${color}22;`;
         if(m.photo) pd.innerHTML=`<img src="${m.photo}">`;
         else pd.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
       }
       if(cw && changed){ setCarState(cw,'racing',i); spawnSmoke(cw,4); }
+
+      // atualiza destaque 1º lugar
+      existingLane.classList.toggle('first-place', m.value===maxVal && m.value>0);
     }
+
     prevValues[i]=m.value;
   });
+
   Array.from(track.querySelectorAll('.lane')).forEach((l,idx)=>{ if(idx>=managers.length) l.remove(); });
+
+  checkGoals();
 }
 
-// ── RANKING ────────────────────────────────────────────────────────────
+// ── RANKING ───────────────────────────────────────────────────────────
 function renderRanking(){
   const sorted=[...managers].sort((a,b)=>b.value-a.value);
   const grid=document.getElementById('rankGrid');grid.innerHTML='';
   sorted.forEach((m,i)=>{
     const color=m.carColor||'#fff';
     const row=document.createElement('div');row.className='rank-row';
-    row.innerHTML=`<span class="rank-pos">${i+1}º</span><span class="dot" style="background:${color}"></span><span class="rank-name">${m.name}</span><span class="rank-val" style="color:${color}">${fmt(m.value)}</span>`;
+    const medal=i===0?'🥇':i===1?'🥈':i===2?'🥉':'';
+    row.innerHTML=`<span class="rank-pos">${medal||i+1+'º'}</span><span class="dot" style="background:${color}"></span><span class="rank-name">${m.name}</span><span class="rank-val" style="color:${color}">${fmt(m.value)}</span>`;
     grid.appendChild(row);
   });
 }
@@ -678,7 +844,6 @@ function updateTime(){
   document.getElementById('luTime').innerHTML=`🕐 ${n.toLocaleDateString('pt-BR')} às ${n.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}`;
 }
 function renderAll(){ renderSidebar(); renderTrack(); renderRanking(); }
-
 function applyImages(){
   applyStripe();
   const g=fmt(goal);
@@ -687,7 +852,7 @@ function applyImages(){
   document.getElementById('objCardVal').textContent=g;
 }
 
-// ── EXPORT / IMPORT ────────────────────────────────────────────────────
+// ── EXPORT / IMPORT ───────────────────────────────────────────────────
 function exportImage(){
   const sidebar=document.querySelector('.sidebar');
   const badge=document.getElementById('managerBtn');
@@ -724,7 +889,7 @@ function importExcel(){
   input.click();
 }
 
-// ── INIT ───────────────────────────────────────────────────────────────
+// ── INIT ──────────────────────────────────────────────────────────────
 loadState();
 applyImages();
 if(checkSession()){
