@@ -6,6 +6,7 @@
 <title>Campanha de Vendas</title>
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:wght@400;600;700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js"></script>
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
@@ -231,8 +232,8 @@ console.log('Firebase conectado!');
   </div>
   <div class="s-section">
     <div class="s-label">Painel de Controle</div>
-    <button class="btn btn-gold" onclick="importCSV()">⬆ IMPORTAR CSV</button>
-    <div class="hint" style="text-align:center;margin-top:-2px;">Formato: Nome,Valor</div>
+    <button class="btn btn-gold" onclick="importCSV()">⬆ IMPORTAR CSV / XLSX</button>
+    <div class="hint" style="text-align:center;margin-top:-2px;">CSV, XLS ou XLSX · Col A=Nome, B=Valor</div>
     <button class="btn btn-outline" onclick="exportImage()">⬇ EXPORTAR IMAGEM</button>
   </div>
   <div class="s-section">
@@ -274,7 +275,7 @@ console.log('Firebase conectado!');
       </div>
     </div>
   </div>
-  <button class="btn btn-save" onclick="saveAll()">💾 SALVAR NO FIREBASE</button>
+  <button class="btn btn-save" onclick="saveAll()">💾 SALVAR</button>
   <button class="btn btn-danger" onclick="logout()">🚪 SAIR</button>
 </aside>
 <main class="main">
@@ -618,21 +619,63 @@ function exportImage(){
   },150);
 }
 
-// ── IMPORTAR CSV ──
+// ── IMPORTAR CSV / XLSX ──
 function importCSV(){
   if(!isManager)return;
-  const input=document.createElement('input');input.type='file';input.accept='.csv';
+  const input=document.createElement('input');input.type='file';input.accept='.csv,.xlsx,.xls';
   input.onchange=e=>{
     const file=e.target.files[0];if(!file)return;
-    const reader=new FileReader();
-    reader.onload=ev=>{
-      const lines=ev.target.result.split('\n').map(l=>l.split(',').map(c=>c.trim().replace(/"/g,'')));
-      const nm=[];const colors=['#ff6eb4','#f5c518','#4da6ff','#4caf50','#9b59b6','#e63946','#f5a623','#00bcd4'];
-      for(let i=1;i<lines.length;i++){if(lines[i][0]){const value=parseFloat(lines[i][1]?.replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.'))||0;nm.push({name:lines[i][0],value,photo:null,carColor:colors[nm.length%colors.length]});}}
-      if(nm.length>0){managers=nm;renderSidebar();renderTrack();renderRanking();saveAll();alert(`✅ Importado ${nm.length} pessoas!`);}
-      else alert('Nenhum dado válido encontrado.');
-    };reader.readAsText(file,'ISO-8859-1');
+    const ext=file.name.split('.').pop().toLowerCase();
+    if(ext==='xlsx'||ext==='xls'){
+      // Lê XLSX com SheetJS
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const data=new Uint8Array(ev.target.result);
+        const wb=XLSX.read(data,{type:'array'});
+        const ws=wb.Sheets[wb.SheetNames[0]];
+        const rows=XLSX.utils.sheet_to_json(ws,{header:1});
+        processRows(rows,file.name);
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      // Lê CSV
+      const reader=new FileReader();
+      reader.onload=ev=>{
+        const lines=ev.target.result.split('\n').map(l=>l.split(',').map(c=>c.trim().replace(/"/g,'')));
+        processRows(lines,file.name);
+      };
+      reader.readAsText(file,'ISO-8859-1');
+    }
   };input.click();
+}
+
+function processRows(rows,filename){
+  const colors=['#ff6eb4','#f5c518','#4da6ff','#4caf50','#9b59b6','#e63946','#f5a623','#00bcd4'];
+  const nm=[];
+  // Detecta linha de cabeçalho (pula se primeira célula for texto não-numérico)
+  let start=0;
+  if(rows.length>0){
+    const first=String(rows[0][0]||'').trim().toLowerCase();
+    if(isNaN(parseFloat(first)))start=1;
+  }
+  for(let i=start;i<rows.length;i++){
+    const row=rows[i];
+    const name=String(row[0]||'').trim();
+    if(!name)continue;
+    // Valor pode ser número direto (xlsx) ou string formatada (csv)
+    let raw=row[1];
+    let value=0;
+    if(typeof raw==='number'){value=raw;}
+    else if(raw!=null){value=parseFloat(String(raw).replace(/R\$\s*/,'').replace(/\./g,'').replace(',','.'))||0;}
+    nm.push({name,value,photo:null,carColor:colors[nm.length%colors.length]});
+  }
+  if(nm.length>0){
+    managers=nm;
+    renderSidebar();renderTrack();renderRanking();saveAll();
+    alert('✅ Importado '+nm.length+' pessoas de "'+filename+'"!');
+  } else {
+    alert('Nenhum dado válido encontrado.\n\nFormato esperado:\nColuna A = Nome\nColuna B = Valor');
+  }
 }
 
 // ── INIT ──
