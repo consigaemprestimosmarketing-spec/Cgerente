@@ -265,6 +265,7 @@ console.log('Firebase conectado!');
     <button class="btn btn-add" onclick="toggleAddForm()">＋ ADICIONAR PESSOA</button>
     <div class="add-form" id="addForm">
       <input type="text" id="newName" placeholder="Nome do atendente" maxlength="20">
+      <input type="text" id="newOrigin" placeholder="De onde é? (ex: São Paulo)" maxlength="30">
       <div class="add-form-row">
         <label>Cor do carro:</label>
         <input type="color" id="newCarColor" value="#f5a623" style="width:32px;height:24px;border-radius:4px;border:none;cursor:pointer;">
@@ -330,11 +331,11 @@ console.log('Firebase conectado!');
 <script>
 const DEFAULT_PW='1234', SESSION_KEY='cSession', SESSION_DAYS=30;
 const DEFAULT_MANAGERS=[
-  {name:'Juliana', value:0, photo:null, carColor:'#ff6eb4'},
-  {name:'Patrícia',value:0, photo:null, carColor:'#f5c518'},
-  {name:'Camila',  value:0, photo:null, carColor:'#4da6ff'},
-  {name:'Lucas',   value:0, photo:null, carColor:'#4caf50'},
-  {name:'Felipe',  value:0, photo:null, carColor:'#9b59b6'},
+  {name:'Juliana', origin:'', value:0, photo:null, carColor:'#ff6eb4'},
+  {name:'Patrícia',origin:'', value:0, photo:null, carColor:'#f5c518'},
+  {name:'Camila',  origin:'', value:0, photo:null, carColor:'#4da6ff'},
+  {name:'Lucas',   origin:'', value:0, photo:null, carColor:'#4caf50'},
+  {name:'Felipe',  origin:'', value:0, photo:null, carColor:'#9b59b6'},
 ];
 const DEFAULT_EMOJI=['👩','👩','👩','👨','👨'];
 let managers=JSON.parse(JSON.stringify(DEFAULT_MANAGERS));
@@ -359,7 +360,7 @@ window.onFirebaseUpdate = function(data){
   if(!data)return;
   // Ignora update se foi o próprio save do gerente (evita loop)
   if(isSaving)return;
-  managers=(data.managers||DEFAULT_MANAGERS).map(m=>({name:m.name,value:Number(m.value)||0,photo:m.photo||null,carColor:m.carColor||'#f5a623'}));
+  managers=(data.managers||DEFAULT_MANAGERS).map(m=>({name:m.name,origin:m.origin||'',value:Number(m.value)||0,photo:m.photo||null,carColor:m.carColor||'#f5a623'}));
   goal=data.goal||70000;
   stripeColor=data.stripeColor||'#e63946';
   // Só atualiza imagens se o gerente NÃO trocou localmente nessa sessão
@@ -404,7 +405,7 @@ async function saveAll(){
 
   // Comprime fotos dos atendentes
   const managersToSave=await Promise.all(managers.map(async m=>({
-    ...m,
+    name:m.name, origin:m.origin||'', value:m.value, carColor:m.carColor,
     photo: await compressImage(m.photo, 120, 0.6)
   })));
 
@@ -514,8 +515,9 @@ function applyStripe(){
 function toggleAddForm(){const f=document.getElementById('addForm');f.classList.toggle('open');if(f.classList.contains('open'))document.getElementById('newName').focus();}
 function addPerson(){
   const name=document.getElementById('newName').value.trim();if(!name){alert('Informe um nome!');return;}
-  managers.push({name,value:0,photo:null,carColor:document.getElementById('newCarColor').value});
-  document.getElementById('newName').value='';toggleAddForm();renderSidebar();renderTrack();renderRanking();debouncedSave();
+  const origin=document.getElementById('newOrigin').value.trim();
+  managers.push({name,origin,value:0,photo:null,carColor:document.getElementById('newCarColor').value});
+  document.getElementById('newName').value='';document.getElementById('newOrigin').value='';toggleAddForm();renderSidebar();renderTrack();renderRanking();debouncedSave();
 }
 function removePerson(i){
   if(managers.length<=1){alert('Deve haver pelo menos 1 pessoa!');return;}
@@ -537,7 +539,20 @@ function renderSidebar(){
     const dot=document.createElement('span');dot.className='dot';dot.style.background=color;
     const av=document.createElement('div');av.className='m-av';av.style.cssText=`border:1.5px solid ${color};background:${color}22;`;av.onclick=()=>pickPhoto(i);
     if(m.photo)av.innerHTML=`<img src="${m.photo}">`;else av.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
-    const nm=document.createElement('span');nm.className='m-name';nm.textContent=m.name;
+    // Nome editável
+    const nmWrap=document.createElement('div');nmWrap.style.cssText='flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;';
+    const nm=document.createElement('input');nm.type='text';nm.value=m.name;nm.maxLength=20;
+    nm.style.cssText='background:transparent;border:none;border-bottom:1px solid transparent;color:#f0f0f0;font-size:11px;font-family:Barlow,sans-serif;width:100%;outline:none;padding:1px 2px;';
+    nm.onfocus=()=>nm.style.borderBottomColor='#f5a623';
+    nm.onblur=()=>{nm.style.borderBottomColor='transparent';managers[i].name=nm.value.trim()||managers[i].name;renderTrack();renderRanking();debouncedSave();};
+    nm.onkeydown=e=>{if(e.key==='Enter')nm.blur();};
+    // Origem editável
+    const og=document.createElement('input');og.type='text';og.value=m.origin||'';og.maxLength=30;og.placeholder='De onde é?';
+    og.style.cssText='background:transparent;border:none;border-bottom:1px solid transparent;color:#888;font-size:10px;font-family:Barlow,sans-serif;width:100%;outline:none;padding:1px 2px;';
+    og.onfocus=()=>og.style.borderBottomColor='#f5a623';
+    og.onblur=()=>{og.style.borderBottomColor='transparent';managers[i].origin=og.value.trim();debouncedSave();};
+    og.onkeydown=e=>{if(e.key==='Enter')og.blur();};
+    nmWrap.append(nm,og);
     const inp=document.createElement('input');inp.type='number';inp.id='val_'+i;inp.value=m.value;inp.min=0;inp.step=100;
     inp.oninput=e=>{managers[i].value=parseFloat(e.target.value)||0;renderTrack();renderRanking();debouncedSave();};
     const bM=document.createElement('button');bM.className='ic-btn';bM.textContent='−';bM.onclick=()=>stepVal(i,-100);
@@ -549,7 +564,7 @@ function renderSidebar(){
     ccInp.oninput=e=>{managers[i].carColor=e.target.value;ccPrev.style.background=e.target.value;renderSidebar();renderTrack();renderRanking();debouncedSave();};
     ccWrap.append(ccPrev,ccInp);
     const del=document.createElement('button');del.className='ic-btn del';del.textContent='🗑';del.onclick=()=>removePerson(i);
-    row.append(dot,av,nm,inp,bM,bP,pb,ccWrap,del);c.appendChild(row);
+    row.append(dot,av,nmWrap,inp,bM,bP,pb,ccWrap,del);c.appendChild(row);
   });
 }
 
@@ -589,7 +604,10 @@ function renderTrack(){
     if(m.photo)pd.innerHTML=`<img src="${m.photo}">`;else pd.textContent=DEFAULT_EMOJI[i%DEFAULT_EMOJI.length];
     const ov=document.createElement('div');ov.className='p-overlay';ov.textContent='📷';
     pw.append(pd,ov);
-    const nm=document.createElement('div');nm.className='d-name';nm.textContent=m.name;nm.style.color=color;
+    const nmBox=document.createElement('div');nmBox.style.cssText='min-width:76px;margin:0 12px;z-index:1;flex-shrink:0;display:flex;flex-direction:column;gap:1px;';
+    const nm=document.createElement('div');nm.className='d-name';nm.textContent=m.name;nm.style.cssText='color:'+color+';margin:0;';
+    const og=document.createElement('div');og.textContent=m.origin||'';og.style.cssText='font-size:10px;color:#888;font-family:Barlow,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:80px;';
+    nmBox.append(nm,og);
     const pWrap=document.createElement('div');pWrap.className='p-wrap';
     const pTrack=document.createElement('div');pTrack.className='p-track';
     const pBar=document.createElement('div');pBar.className='p-bar';
@@ -598,7 +616,7 @@ function renderTrack(){
     const cw=document.createElement('div');cw.className='car-wrap idle';cw.innerHTML=carSVG(color);
     pBar.append(hl,cw);pTrack.appendChild(pBar);pWrap.appendChild(pTrack);
     const badge=document.createElement('div');badge.className='val-badge';badge.textContent=fmt(m.value);badge.style.color=color;badge.style.borderColor=color+'55';
-    lane.append(pw,nm,pWrap,badge);
+    lane.append(pw,nmBox,pWrap,badge);
     track.insertBefore(lane,finish);
     prevValues[i]=m.value;
   });
