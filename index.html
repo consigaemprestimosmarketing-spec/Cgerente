@@ -384,21 +384,24 @@ window.onFirebaseUpdate = function(data){
   if(data.cardObj!==undefined) cardObj=data.cardObj;
 
   if(isManager){
-    // Sync suave: atualiza managers[] mas preserva o DOM da sidebar
-    // Só reconstrói se o número de pessoas mudou
     const sizeChanged = newManagers.length !== managers.length;
-    managers=newManagers;
+    managers = newManagers;
     if(sizeChanged){
-      renderSidebar();
+      renderSidebar(); // Só reconstrói se mudou quantidade de pessoas
     } else {
-      // Atualiza inputs existentes sem recriar o DOM (preserva foco e cursor)
+      // Atualiza APENAS inputs de valor e nome/origem sem recriar o DOM
       managers.forEach((m,i)=>{
         const valEl=document.getElementById('val_'+i);
         if(valEl && document.activeElement!==valEl) valEl.value=m.value;
+        // Atualiza nome e origem nos inputs existentes se não estiver com foco
+        const allInputs=document.querySelectorAll('.edit-name');
+        if(allInputs[i] && document.activeElement!==allInputs[i]) allInputs[i].value=m.name;
+        const allOrigins=document.querySelectorAll('.edit-origin');
+        if(allOrigins[i] && document.activeElement!==allOrigins[i]) allOrigins[i].value=m.origin||'';
       });
     }
   } else {
-    managers=newManagers;
+    managers = newManagers;
   }
 
   applyMeta();
@@ -591,12 +594,12 @@ function renderSidebar(){
 
     const nm=document.createElement('input');nm.type='text';nm.value=m.name;nm.maxLength=20;
     nm.placeholder='Nome';nm.className='edit-name';
-    nm.onblur=()=>{managers[i].name=nm.value.trim()||managers[i].name;renderTrack();renderRanking();debouncedSave();};
+    nm.onblur=()=>{managers[i].name=nm.value.trim()||managers[i].name;renderTrack();renderRanking();saveAll();};
     nm.onkeydown=e=>{if(e.key==='Enter')nm.blur();};
 
     const og=document.createElement('input');og.type='text';og.value=m.origin||'';og.maxLength=30;
     og.placeholder='De onde é? (ex: São Paulo)';og.className='edit-origin';
-    og.onblur=()=>{managers[i].origin=og.value.trim();renderTrack();debouncedSave();};
+    og.onblur=()=>{managers[i].origin=og.value.trim();renderTrack();saveAll();};
     og.onkeydown=e=>{if(e.key==='Enter')og.blur();};
 
     fields.append(nm,og);
