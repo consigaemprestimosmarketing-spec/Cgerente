@@ -10,7 +10,8 @@
 <!-- Firebase -->
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, onSnapshot, getDoc } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getFirestore, doc, setDoc, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getStorage, ref, uploadString, getDownloadURL } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js';
 
 const firebaseConfig = {
   apiKey: "AIzaSyBcn514uoUgVCt7NFOKXXyaFDz0vXZRhxE",
@@ -38,6 +39,24 @@ onSnapshot(doc(db,'campanha','state'), (snap) => {
     window.onFirebaseUpdate(data);
   }
 });
+
+const storage = getStorage(app);
+
+// Upload de imagem para o Storage, retorna URL pública
+window.fbUploadImage = async function(dataUrl, path) {
+  try {
+    const storageRef = ref(storage, path);
+    // Remove o prefixo data:image/...;base64,
+    const base64 = dataUrl.split(',')[1];
+    const mimeType = dataUrl.split(';')[0].split(':')[1];
+    await uploadString(storageRef, base64, 'base64', { contentType: mimeType });
+    const url = await getDownloadURL(storageRef);
+    return url;
+  } catch(e) {
+    console.error('Erro upload imagem:', e);
+    return null;
+  }
+};
 
 window.fbReady = true;
 console.log('Firebase conectado!');
@@ -381,10 +400,35 @@ async function saveAll(){
   parseGoal();
   setSyncStatus('saving');
   isSaving=true;
+
+  // Fotos dos atendentes: upload se for base64
+  const managersToSave = await Promise.all(managers.map(async (m,i)=>{
+    let photo = m.photo;
+    if(photo && photo.startsWith('data:')){
+      const url = await window.fbUploadImage(photo, 'fotos/atendente_'+i+'.jpg');
+      if(url){ m.photo=url; photo=url; }
+    }
+    return {...m, photo};
+  }));
+
+  // Logo
+  let logoSrc = document.getElementById('logoImg')?.src||null;
+  if(logoSrc && logoSrc.startsWith('data:')){
+    const url = await window.fbUploadImage(logoSrc,'fotos/logo.jpg');
+    if(url){ document.getElementById('logoImg').src=url; logoSrc=url; }
+  }
+
+  // Prêmio
+  let premioSrc = document.getElementById('premioImg')?.src||null;
+  if(premioSrc && premioSrc.startsWith('data:')){
+    const url = await window.fbUploadImage(premioSrc,'fotos/premio.jpg');
+    if(url){ document.getElementById('premioImg').src=url; premioSrc=url; }
+  }
+
   const data={
-    managers,goal,stripeColor,
-    logoImg: document.getElementById('logoImg')?.src||null,
-    premioImg: document.getElementById('premioImg')?.src||null,
+    managers: managersToSave, goal, stripeColor,
+    logoImg: logoSrc,
+    premioImg: premioSrc,
     updatedAt: new Date().toISOString()
   };
   if(window.fbSave){
