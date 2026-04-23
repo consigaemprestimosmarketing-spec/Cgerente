@@ -371,6 +371,7 @@ let localLogoChanged=false, localPremioChanged=false;
 
 window.onFirebaseUpdate = function(data){
   if(!data)return;
+  console.log('📡 Firebase update recebido:', new Date().toLocaleTimeString(), 'nomes:', JSON.stringify((data.managers||[]).map(m=>m.name)));
   if(isSaving)return; // Ignora se o gerente local está salvando
   const newManagers=(data.managers||DEFAULT_MANAGERS).map(m=>({name:m.name,origin:m.origin||'',value:Number(m.value)||0,photo:m.photo||null,carColor:m.carColor||'#f5a623'}));
   goal=data.goal||70000;
@@ -405,11 +406,12 @@ window.onFirebaseUpdate = function(data){
   }
 
   applyMeta();
-  applyTitles();
   renderTrack();
   renderRanking();
+  applyTitles(); // Depois do render para não ser sobrescrito
   updateTime(data.updatedAt);
   setSyncStatus('ok');
+  console.log('🎨 Títulos aplicados:', titleMain, '|', titleSub, '| cardObj:', cardObj);
 };
 
 // ── SALVAR ──
@@ -454,6 +456,7 @@ async function saveAll(){
   const data={
     managers:managersToSave, goal, stripeColor,
     logoImg, premioImg,
+    titleMain, titleSub, cardTitle, cardSub, cardObj,
     updatedAt: new Date().toISOString()
   };
 
@@ -461,14 +464,17 @@ async function saveAll(){
     try{
       await window.fbSave(data);
       setSyncStatus('ok');
+      // Mostra timestamp do save no console para debug
+      console.log('✅ Salvo no Firebase:', new Date().toLocaleTimeString(), 'managers:', JSON.stringify(data.managers.map(m=>m.name)));
     }catch(e){
-      console.error('Erro ao salvar:',e);
+      console.error('❌ Erro ao salvar:',e);
       setSyncStatus('err');
-      alert('Erro ao salvar: '+e.message);
+      alert('Erro ao salvar:\n' + e.message + '\n\nVerifique as regras do Firestore.');
     }
   } else {
     setSyncStatus('err');
-    alert('Firebase ainda não conectou. Aguarde e tente novamente.');
+    console.error('❌ fbSave não disponível - Firebase não conectou');
+    alert('Firebase não conectou ainda.\nAguarde 3 segundos e tente novamente.');
   }
   setTimeout(()=>isSaving=false, 2000);
 }
@@ -829,7 +835,7 @@ function editTitle(elId, varName){
 }
 
 // ── INIT ──
-renderTrack();renderRanking();updateTime();applyTitles();
+renderTrack();renderRanking();applyTitles();updateTime();
 if(checkSession()){isManager=true;document.body.classList.remove('viewer-mode');document.getElementById('managerBtnLabel').textContent='✏ GERENTE · SAIR';renderSidebar();}
 setSyncStatus('ok');
 </script>
